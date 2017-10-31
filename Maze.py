@@ -176,17 +176,9 @@ class Maze:
         curr_coord = (x,y)
 
         coord_list = [north_coord, east_coord, south_coord, west_coord]
-        index_list = []
-        for coord in coord_list:
-            if coord != None:
-                x_coord = coord[0]
-                y_coord = coord[1]
-                cell_content = self.map[self.position_dict[self.index(x_coord, y_coord)]]
-                if cell_content == "#": 
-                    index_list.append((self.state_dict[(curr_coord[0], curr_coord[1])], cell_content))  
-                else:
-                    index_list.append((self.state_dict[(x_coord, y_coord)], cell_content))
-        return index_list
+        coord_list = [coord for coord in coord_list if coord is not None and self.map[self.position_dict[self.index(coord[0], coord[1])]] is not "#"]
+
+        return coord_list 
 
     def full_color(self, color_abbreviation):
         """
