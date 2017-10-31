@@ -1,5 +1,5 @@
-g b r b
-b b r y
+g # r b
+b # # y
 y r g y
 g r b y
-\robot 1 2 
+\robot 1 1 

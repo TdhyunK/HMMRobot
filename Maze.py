@@ -42,6 +42,8 @@ class Maze:
     def __init__(self, mazefilename):
 
         self.robotloc = []
+        self.num_states = 0
+        self.state_dict = {}
         # read the maze file into a list of strings
         f = open(mazefilename)
         lines = []
@@ -60,31 +62,60 @@ class Maze:
                 self.robotloc.append(y)
             else:
                 lines.append(line)
+                for position in line:
+                    if position == "r" or position == "g" or position == "b" or position == "y":
+                        self.num_states += 1
+        self.position_dict = {}
         f.close()
         self.width = len(lines[0]) - len(lines[0])/2
         self.height = len(lines)
-        self.position_dict = {}
-
         self.map = list("".join(lines))
-
-
+        self.init_position_dict()
+        self.init_state_dict()
+        print("state dict: \n" + str(self.state_dict))
+        print("MAP : \n" + str(self.map))
+        print("position dict: \n" + str(self.position_dict))
 
     def index(self, x, y):
+        """
+        Return the index of the coordinate.
+        @param: x: x-coordinate
+        @param: y: y-coordinate
+        """
         return (self.height - y - 1) * self.width + x
+    
+    def init_state_dict(self):
+        """
+        Map every non-walled location to an index
+        beginning from top left to bottom right
+        """
+        state_num = 0
+        for y in range(self.height-1, -1, -1):
+            for x in range(self.width):
+                if self.get_cell_color(x,y) != "#":
+                    self.state_dict[(x,y)] = state_num
+                    state_num += 1
 
-    def outOfMaze(self, x, y):
-        if x < 0 or x >= self.width or y < 0 or y >= self.height:
-            return True
-        return False
+    def get_cell_color(self, x, y):
+        """
+        Return the color of the cell
+        @param: x: x coordinate of the cell
+        @param: y: y coordinate of the cell
+        """
+        return self.map[self.position_dict[self.index(x,y)]]
 
-    # returns True if the location is a floor
-    def is_floor(self, x, y):
+    def valid_coord(self,x,y):
         if x < 0 or x >= self.width:
             return False
         if y < 0 or y >= self.height:
             return False
+        return True 
 
-        return self.map[self.index(x, y)] != "#"
+    # returns True if the location is a floor
+    def is_floor(self, x, y):
+        if valid_cooord:
+            return self.map[self.index(x, y)] != "#"
+        return False
 
 
     def has_robot(self, x, y):
@@ -101,19 +132,22 @@ class Maze:
 
         return False
 
+    def init_position_dict(self):
+        """
+        Map every position (walls and non walls) into an index
+        """
+        map_list = list(self.map)
+        matrix_cell = 0
+        for i in range(len(map_list)):
+            if map_list[i] != " ":
+                self.position_dict[matrix_cell] = i
+                matrix_cell += 1
 
     # function called only by __str__ that takes the map and the
     #  robot state, and generates a list of characters in order
     #  that they will need to be printed out in.
     def create_render_list(self, type=None):
         renderlist = list(self.map)
-        matrix_cell = 0
-        for i in range(len(renderlist)):
-            if renderlist[i] != " ":
-                self.position_dict[matrix_cell] = i
-                matrix_cell += 1
-
-
         robot_number = 0
         for index in range(0, len(self.robotloc), 2):
 
@@ -128,13 +162,45 @@ class Maze:
                 robot_number += 1
         return renderlist
 
+    def find_neighbors(self, x, y):
+        """
+        Find the four valid neighbors in the cardinal 
+        direction (north, south, east, west) of the location.
+        @param: x: x-coordinate of the location
+        @param: y: y-coordinate of the location
+        """
+        north_coord = (x, y + 1) if self.valid_coord(x, y + 1) else None 
+        east_coord = (x + 1, y) if self.valid_coord(x + 1, y) else None
+        south_coord = (x, y - 1) if self.valid_coord(x, y-1) else None
+        west_coord = (x - 1, y) if self.valid_coord(x - 1, y) else None
+        curr_coord = (x,y)
+
+        coord_list = [north_coord, east_coord, south_coord, west_coord]
+        index_list = []
+        for coord in coord_list:
+            if coord != None:
+                x_coord = coord[0]
+                y_coord = coord[1]
+                cell_content = self.map[self.position_dict[self.index(x_coord, y_coord)]]
+                if cell_content == "#": 
+                    index_list.append((self.state_dict[(curr_coord[0], curr_coord[1])], cell_content))  
+                else:
+                    index_list.append((self.state_dict[(x_coord, y_coord)], cell_content))
+        return index_list
+
     def full_color(self, color_abbreviation):
+        """
+        Return the full word of a call given the abbreviation
+        @paaram: color_abbreviation: first letter of the color
+        """
         return{
             "r": "red",
             "b": "blue",
             "g": "green",
-            "y": "yellow"
+            "y": "yellow",
+            "#": "#"
         }[color_abbreviation]          
+
     def __str__(self):
         renderlist = self.create_render_list()
 
@@ -197,7 +263,6 @@ if __name__ == "__main__":
 #    print(test_maze1.map)
 #    print(test_maze1.create_render_list())
 #    print(test_maze1)
-    print(test_maze2.map)
-    print(test_maze2.create_render_list())
     print(test_maze2)
-
+    print(test_maze2.create_render_list())
+    print(test_maze2.position_dict)
