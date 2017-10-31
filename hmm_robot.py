@@ -6,18 +6,27 @@ from Matrix import Matrix
 
 class hmm_robot():
     
-    def __init__(self, maze):
+    def __init__(self, maze, num_timesteps):
         self.maze = maze
         self.transition_model = None
         self.sensor_model = None
-        self.probability_distribution = None
+        self.num_timesteps = num_timesteps
         self.create_sensor_model()
         self.create_transition_model()
+        self.init_probability_distribution()
 
+#    def forward(self):
+#        i = 0
+#        while i <= num_timesteps:
+                    
+
+    def init_probability_distribution(self):
+        distribution_list = []
+        for i in range(self.maze.num_states):
+            distribution_list.append([1.0/float(self.maze.num_states)])
+        self.maze.probability_distribution = Matrix(distribution_list)
+    
     def create_transition_model(self):
-        location_probability = 1/float(self.maze.num_states)
-        print("num states: " + str(self.maze.num_states))
-        print("location probability: %.5f" % location_probability)
         transition_model = [[0 for i in range(self.maze.num_states)] for j in range(self.maze.num_states)]
         for row in range(self.maze.width):
             for col in range(self.maze.height):
@@ -70,8 +79,10 @@ class hmm_robot():
                         green_sensor[index][index] = wrong_reading
                         yellow_sensor[index][index] = correct_reading 
         self.sensor_model = [Matrix(red_sensor), Matrix(green_sensor), Matrix(blue_sensor), Matrix(yellow_sensor)]
+    
+    
 test_maze = Maze("maze2.maz")
-test = hmm_robot(test_maze)
+test = hmm_robot(test_maze, 50)
 #test.create_sensor_model() 
 #matrix_num = 0
 #for matrix in test.sensor_model:
@@ -79,4 +90,5 @@ test = hmm_robot(test_maze)
 #    print(matrix)
 #    matrix_num += 1
 #print(test.maze.find_neighbors(1,1))
-print(test.transition_model)
+#print(test.transition_model)
+print(test.maze)

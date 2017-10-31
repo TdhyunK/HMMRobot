@@ -70,11 +70,9 @@ class Maze:
         self.width = len(lines[0]) - len(lines[0])/2
         self.height = len(lines)
         self.map = list("".join(lines))
+        self.probability_distribution = None 
         self.init_position_dict()
         self.init_state_dict()
-        print("state dict: \n" + str(self.state_dict))
-        print("MAP : \n" + str(self.map))
-        print("position dict: \n" + str(self.position_dict))
 
     def index(self, x, y):
         """
@@ -209,6 +207,8 @@ class Maze:
         while start_index < end_index:
             robot_start_index = start_index
             color_start_index = start_index
+            prob_start_index = start_index
+            prob_distrib_index = 0
             sub_list_end_index = start_index + self.width 
             s += ("-" * 20) * self.width + "\n"
             s += "-                  -" * self.width + "\n"
@@ -226,7 +226,6 @@ class Maze:
                 color_start_index += 1
             s += "\n"
             while robot_start_index < sub_list_end_index:
-                is_tuple = False
                 curr_val = renderlist[self.position_dict[robot_start_index]]
                 is_tuple = True if type(curr_val) == tuple else False
                 if is_tuple:
@@ -237,8 +236,21 @@ class Maze:
                 else:
                     s += "-" + " " * 18 + "-"
                 robot_start_index += 1
-
-            s += "\n"             
+            s += "\n"
+            if self.probability_distribution is not None:
+                while prob_start_index < sub_list_end_index:
+                    curr_val = renderlist[self.position_dict[prob_start_index]]
+                    is_tuple = True if type(curr_val) == tuple else False
+                    curr_val = curr_val[0] if is_tuple else curr_val
+                    if curr_val == "#": 
+                        s += "-" + " " * 18 + "-"
+                    else:
+                        num_prob_spaces = 14 #20 spaces - 6 (xx.xx%)
+                        s += "-" + " " * (num_prob_spaces/2-1)
+                        s += "%.2f" % (self.probability_distribution.matrix[prob_distrib_index][0] * 100)     
+                        s += "%" + " " * (num_prob_spaces/2) + "-"     
+                    prob_start_index += 1
+                s += "\n"             
             start_index = sub_list_end_index 
         s += "-" * 20 * self.width
         return s  
