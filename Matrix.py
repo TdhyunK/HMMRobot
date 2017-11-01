@@ -21,6 +21,8 @@ class Matrix():
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 transpose_list[j][i] = self.matrix[i][j]
+               
+        print("TRANSPOSED LIST: " + str(transpose_list))
         self.matrix = transpose_list
  
     def multiply_matrix(self, matrix_multiplier):
@@ -45,9 +47,22 @@ class Matrix():
         for i in range(len(self.matrix)):
             return_string += str(self.matrix[i]) + "\n"
         return return_string       
-
+    
+    def normalize(self):
+        for col in range(len(self.matrix[0])): 
+            check_sum = 0
+            curr_sum = 0
+            for row in range(len(self.matrix)): 
+                curr_sum += self.matrix[row][col]   
+            for row in range(len(self.matrix)): 
+                self.matrix[row][col] = self.matrix[row][col]/float(curr_sum)
+                check_sum += self.matrix[row][col]
+            print("check sum: " + str(check_sum))
+                
 matrixA = [[1,2,3],[4,5,6],[7,8,9],[10,11,12]]
 matrixB = [[2],[1],[0]] 
 testA = Matrix(matrixA)
 testB = Matrix(matrixB)
 #print(testA.multiply_matrix(testB))
+testB.normalize()
+print(testB)

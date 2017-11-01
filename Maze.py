@@ -73,6 +73,7 @@ class Maze:
         self.probability_distribution = None 
         self.init_position_dict()
         self.init_state_dict()
+        print("robot loc: " + str(self.robotloc))
 
     def index(self, x, y):
         """
@@ -204,11 +205,11 @@ class Maze:
 
         start_index = 0
         end_index = len(index_list) 
+        prob_distrib_index = 0
         while start_index < end_index:
             robot_start_index = start_index
             color_start_index = start_index
             prob_start_index = start_index
-            prob_distrib_index = 0
             sub_list_end_index = start_index + self.width 
             s += ("-" * 20) * self.width + "\n"
             s += "-                  -" * self.width + "\n"
@@ -246,9 +247,11 @@ class Maze:
                         s += "-" + " " * 18 + "-"
                     else:
                         num_prob_spaces = 14 #20 spaces - 6 (xx.xx%)
+                        print("PROBABILITY: " + str(self.probability_distribution.matrix[prob_distrib_index][0] * 100))
                         s += "-" + " " * (num_prob_spaces/2-1)
                         s += "%.2f" % (self.probability_distribution.matrix[prob_distrib_index][0] * 100)     
                         s += "%" + " " * (num_prob_spaces/2) + "-"     
+                        prob_distrib_index += 1
                     prob_start_index += 1
                 s += "\n"             
             start_index = sub_list_end_index 

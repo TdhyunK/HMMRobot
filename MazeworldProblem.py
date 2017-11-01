@@ -4,7 +4,7 @@
 
 from Maze import Maze
 from time import sleep
-
+from hmm_robot import hmm_robot
 class MazeworldProblem:
 
     #Mazeworld Constructor
@@ -43,7 +43,8 @@ class MazeworldProblem:
 #  work as expected.
 
 if __name__ == "__main__":
-    test_maze3 = Maze("maze3.maz")
-    test_mp = MazeworldProblem(test_maze3, (1, 4, 1, 3, 1, 2))
-
-    print(test_mp.get_successors((0, 1, 0, 1, 2, 2, 1)))
+    test_maze2 = Maze("maze2.maz")
+    test_hmm = hmm_robot(test_maze2, 10)
+    random_move_list = test_hmm.generate_random_moves()
+    print("random move list: \n" + str(random_move_list))
+   test_hmm.animate_path(random_move_list)

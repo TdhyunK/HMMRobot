@@ -3,11 +3,14 @@
 
 from Maze import Maze
 from Matrix import Matrix
+from random import uniform
+from time import sleep
 
 class hmm_robot():
     
     def __init__(self, maze, num_timesteps):
         self.maze = maze
+        #By default transition model is transposed
         self.transition_model = None
         self.sensor_model = None
         self.num_timesteps = num_timesteps
@@ -15,10 +18,65 @@ class hmm_robot():
         self.create_transition_model()
         self.init_probability_distribution()
 
-#    def forward(self):
-#        i = 0
-#        while i <= num_timesteps:
-                    
+    def forward(self, color):
+        sensor_model = None
+        if color == "r":
+            sensor_model = self.sensor_model[0]
+        elif color == "g":
+            sensor_model = self.sensor_model[1]
+        elif color == "b":
+            sensor_model = self.sensor_model[2]
+        elif color == "y":
+            sensor_model = self.sensor_model[3]
+       # print("sensor model \n" + str(sensor_model))
+       # print("transition model \n" + str(self.transition_model))
+       # print("probability distribution \n" + str(self.maze.probability_distribution))
+        self.maze.probability_distribution = sensor_model.multiply_matrix(self.transition_model).multiply_matrix(self.maze.probability_distribution)
+        print("NOT NORMALIZED DISTRIBUTION: " + str(self.maze.probability_distribution))
+        self.maze.probability_distribution.normalize()   
+        print("NORMALIZED DISTRIBUTION: " + str(self.maze.probability_distribution))
+ 
+    def random_move_decision(self, probability):
+        if probability >= 0.00 and probability <= 0.25:
+            return "r"
+        elif probability >= 0.26 and probability <= 0.50:
+            return "l"
+        elif probability >= 0.51 and probability <= 0.75:
+            return "u"
+        elif probability >= 0.76 and probability <= 1.00:
+            return "d"
+  
+    def generate_random_moves(self):
+        robot_x = self.maze.robotloc[0]
+        robot_y = self.maze.robotloc[1]
+        robot_loc_list = []
+        i = 0
+        while i <= self.num_timesteps:
+            probability = uniform(0,1)
+            move = self.random_move_decision(probability) 
+            if move == "r":
+                if self.maze.valid_coord(robot_x + 1, robot_y) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x + 1, robot_y)]] != "#":
+                    robot_x = robot_x + 1
+                else:
+                    robot_x
+            elif move == "l":
+                if self.maze.valid_coord(robot_x - 1, robot_y) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x - 1, robot_y)]] != "#":
+                    robot_x = robot_x - 1
+                else:
+                    robot_x
+            elif move == "u":
+                if self.maze.valid_coord(robot_x, robot_y + 1) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x, robot_y + 1)]] != "#":
+                    robot_y = robot_y + 1 
+                else:
+                    robot_y
+            elif move == "d":
+                if self.maze.valid_coord(robot_x, robot_y - 1) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x, robot_y - 1)]] != "#":
+                    robot_y = robot_y - 1
+                else: 
+                    robot_y
+            robot_loc_list.append([robot_x, robot_y]) 
+            i += 1
+        return robot_loc_list             
 
     def init_probability_distribution(self):
         distribution_list = []
@@ -41,7 +99,7 @@ class hmm_robot():
                         transition_model[row_index][col_index] = 0.25
                     transition_model[row_index][row_index] = prob_same_loc 
         self.transition_model = Matrix(transition_model)
-
+        self.transition_model.transpose()
     def create_sensor_model(self):
         wrong_reading = 0.04
         correct_reading = 0.88
@@ -79,7 +137,32 @@ class hmm_robot():
                         green_sensor[index][index] = wrong_reading
                         yellow_sensor[index][index] = correct_reading 
         self.sensor_model = [Matrix(red_sensor), Matrix(green_sensor), Matrix(blue_sensor), Matrix(yellow_sensor)]
+
+    def read_color(self, actual_color):
+        full_color_list = ["r", "g", "b", "y"]
+        full_color_list = [color for color in full_color_list if color is not actual_color]
+        random_probability = round(uniform(0,1), 2)
+        print("random probability: " + str(random_probability))
+        if random_probability <= 0.88:
+            return actual_color
+        elif random_probability >= 0.89 and random_probability <= 0.92:
+            return full_color_list[0]
+        elif random_probability >= 0.93 and random_probability <= 0.96:
+            return full_color_list[1]
+        elif random_probability >= 0.97 and random_probability <= 1.00:
+            return full_color_list[2]
     
+    def animate_path(self, path):
+        print(str(self.maze))
+        for location in path:
+            self.maze.robotloc = location
+            actual_color = self.maze.map[self.maze.position_dict[self.maze.index(location[0], location[1])]]
+            print("actual color: " + str(actual_color))
+            read_color = self.read_color(actual_color) 
+            print("read color: " + str(read_color))
+            self.forward(read_color)
+            sleep(1)
+            print(str(self.maze))
     
 test_maze = Maze("maze2.maz")
 test = hmm_robot(test_maze, 50)
@@ -91,4 +174,6 @@ test = hmm_robot(test_maze, 50)
 #    matrix_num += 1
 #print(test.maze.find_neighbors(1,1))
 #print(test.transition_model)
-print(test.maze)
+random_move_list = test.generate_random_moves()
+print("random move list: \n" + str(random_move_list))
+test.animate_path(random_move_list)
