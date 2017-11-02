@@ -4,9 +4,11 @@
 from Maze import Maze
 from Matrix import Matrix
 from random import uniform
+import curses
 from time import sleep
 
 class hmm_robot():
+    
     def __init__(self, maze, num_timesteps):
         self.maze = maze
         #By default transition model is transposed
@@ -34,56 +36,6 @@ class hmm_robot():
         self.maze.probability_distribution = sensor_model.multiply_matrix(self.transition_model).multiply_matrix(self.maze.probability_distribution)
         self.maze.probability_distribution.normalize()   
  
-    def random_move_decision(self, probability):
-        """
-        Generate a random move at auniform probability
-        @param: probability: probability to determine which move to make.
-        """
-        if probability >= 0.00 and probability <= 0.25:
-            return "r"
-        elif probability >= 0.26 and probability <= 0.50:
-            return "l"
-        elif probability >= 0.51 and probability <= 0.75:
-            return "u"
-        elif probability >= 0.76 and probability <= 1.00:
-            return "d"
-  
-    def generate_random_moves(self):
-        """
-        Generate a list of random moves up to the self.num_timesteps
-        """
-        robot_x = self.maze.robotloc[0]
-        robot_y = self.maze.robotloc[1]
-        robot_loc_list = []
-        i = 0
-        while i <= self.num_timesteps:
-            probability = uniform(0,1)
-            move = self.random_move_decision(probability) 
-            #Depending on probability, move either right, left, up, or down
-            if move == "r":
-                if self.maze.valid_coord(robot_x + 1, robot_y) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x + 1, robot_y)]] != "#":
-                    robot_x = robot_x + 1
-                else:
-                    robot_x
-            elif move == "l":
-                if self.maze.valid_coord(robot_x - 1, robot_y) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x - 1, robot_y)]] != "#":
-                    robot_x = robot_x - 1
-                else:
-                    robot_x
-            elif move == "u":
-                if self.maze.valid_coord(robot_x, robot_y + 1) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x, robot_y + 1)]] != "#":
-                    robot_y = robot_y + 1 
-                else:
-                    robot_y
-            elif move == "d":
-                if self.maze.valid_coord(robot_x, robot_y - 1) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x, robot_y - 1)]] != "#":
-                    robot_y = robot_y - 1
-                else: 
-                    robot_y
-            robot_loc_list.append([robot_x, robot_y]) 
-            i += 1
-        return robot_loc_list             
-
     def init_probability_distribution(self):
         """
         Initialize the probability distribution of the maze
@@ -165,6 +117,7 @@ class hmm_robot():
         full_color_list = ["r", "g", "b", "y"]
         full_color_list = [color for color in full_color_list if color is not actual_color]
         random_probability = round(uniform(0,1), 2)
+        #Depending on the probability, return either the correct or incorrect color
         if random_probability <= 0.88:
             return actual_color
         elif random_probability >= 0.89 and random_probability <= 0.92:
@@ -174,23 +127,46 @@ class hmm_robot():
         elif random_probability >= 0.97 and random_probability <= 1.00:
             return full_color_list[2]
     
-    def animate_path(self, path):
+    def animate_path(self):
         """
         Animate the path given user input
         """
-        print(str(self.maze))
-        for location in path:
-            self.maze.robotloc = location
-            actual_color = self.maze.map[self.maze.position_dict[self.maze.index(location[0], location[1])]]
+        while(True):
+            move = raw_input("Enter which direction you want to move and press enter.")
+            robot_x = self.maze.robotloc[0]
+            robot_y = self.maze.robotloc[1]
+            if move == "\x1b[C":
+                if self.maze.valid_coord(robot_x + 1, robot_y) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x + 1, robot_y)]] != "#":
+                    robot_x = robot_x + 1
+                else:
+                    robot_x
+            elif move == "\x1b[D":
+                if self.maze.valid_coord(robot_x - 1, robot_y) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x - 1, robot_y)]] != "#":
+                    robot_x = robot_x - 1
+                else:
+                    robot_x
+            elif move == "\x1b[A":
+                if self.maze.valid_coord(robot_x, robot_y + 1) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x, robot_y + 1)]] != "#":
+                    robot_y = robot_y + 1 
+                else:
+                    robot_y
+            elif move == "\x1b[B":
+                if self.maze.valid_coord(robot_x, robot_y - 1) and self.maze.map[self.maze.position_dict[self.maze.index(robot_x, robot_y - 1)]] != "#":
+                    robot_y = robot_y - 1
+                else: 
+                    robot_y
+            self.maze.robotloc = [robot_x, robot_y]    
+            actual_color = self.maze.map[self.maze.position_dict[self.maze.index(robot_x, robot_y)]]
             print("actual color: " + str(actual_color))
-            read_color = self.read_color(actual_color) 
+            read_color = self.read_color(actual_color)
             print("read color: " + str(read_color))
             self.forward(read_color)
             sleep(1)
             print(str(self.maze))
     
+
+
 test_maze = Maze("maze2.maz")
 #test_maze = Maze("maze1.maz")
 test = hmm_robot(test_maze, 50)
-random_move_list = test.generate_random_moves()
-test.animate_path(random_move_list)
+test.animate_path()

@@ -73,7 +73,6 @@ class Maze:
         self.probability_distribution = None 
         self.init_position_dict()
         self.init_state_dict()
-        print("robot loc: " + str(self.robotloc))
 
     def index(self, x, y):
         """
@@ -104,20 +103,34 @@ class Maze:
         return self.map[self.position_dict[self.index(x,y)]]
 
     def valid_coord(self,x,y):
+        """
+        Determine if the location is a within the bounds of the maze.
+        @param: x: x coordinate of the robot
+        @param: y: y coordinate of the robot
+        """
         if x < 0 or x >= self.width:
             return False
         if y < 0 or y >= self.height:
             return False
         return True 
 
-    # returns True if the location is a floor
     def is_floor(self, x, y):
+        """
+        Determine if the location is a floor
+        @param: x: x coordinate of the robot
+        @param: y: y coordinate of the robot
+        """
         if valid_cooord:
             return self.map[self.index(x, y)] != "#"
         return False
 
 
     def has_robot(self, x, y):
+        """
+        Determine if there is a robot in the location
+        @param: x: x coordinate of the robot
+        @param: y: y coordinate of the robot
+        """
         if x < 0 or x >= self.width:
             return False
         if y < 0 or y >= self.height:
@@ -128,7 +141,6 @@ class Maze:
             ry = self.robotloc[i + 1]
             if rx == x and ry == y:
                 return True
-
         return False
 
     def init_position_dict(self):
@@ -142,10 +154,10 @@ class Maze:
                 self.position_dict[matrix_cell] = i
                 matrix_cell += 1
 
-    # function called only by __str__ that takes the map and the
-    #  robot state, and generates a list of characters in order
-    #  that they will need to be printed out in.
-    def create_render_list(self, type=None):
+    def create_render_list(self):
+        """
+        Create the render list to be called in __str__
+        """
         renderlist = list(self.map)
         robot_number = 0
         for index in range(0, len(self.robotloc), 2):
@@ -155,10 +167,7 @@ class Maze:
 
             robot_index = self.index(x,y)
             renderlist[self.position_dict[robot_index]] = (renderlist[self.position_dict[robot_index]], "robot")
-            #Create tuple with robot in it.
-            #renderlist[self.index(x, y)] = (renderlist[self.index(x,y)],"robot")
-            if(type == None):
-                robot_number += 1
+
         return renderlist
 
     def find_neighbors(self, x, y):
@@ -182,7 +191,7 @@ class Maze:
     def full_color(self, color_abbreviation):
         """
         Return the full word of a call given the abbreviation
-        @paaram: color_abbreviation: first letter of the color
+        @param: color_abbreviation: first letter of the color
         """
         return{
             "r": "red",
@@ -193,6 +202,9 @@ class Maze:
         }[color_abbreviation]          
 
     def __str__(self):
+        """
+        Return string representation of the Maze.
+        """
         renderlist = self.create_render_list()
 
         s = ""
@@ -213,6 +225,7 @@ class Maze:
             sub_list_end_index = start_index + self.width 
             s += ("-" * 20) * self.width + "\n"
             s += "-                  -" * self.width + "\n"
+            #Print out color of the location
             while color_start_index < sub_list_end_index:
                 is_tuple = False
                 curr_val = renderlist[self.position_dict[color_start_index]]
@@ -226,6 +239,7 @@ class Maze:
                 s += " " * (num_color_spaces - num_color_spaces/2-2) + "-"
                 color_start_index += 1
             s += "\n"
+            #If robot is in the location, print robot
             while robot_start_index < sub_list_end_index:
                 curr_val = renderlist[self.position_dict[robot_start_index]]
                 is_tuple = True if type(curr_val) == tuple else False
@@ -238,6 +252,7 @@ class Maze:
                     s += "-" + " " * 18 + "-"
                 robot_start_index += 1
             s += "\n"
+            #Print out probability distribution of the location
             if self.probability_distribution is not None:
                 while prob_start_index < sub_list_end_index:
                     curr_val = renderlist[self.position_dict[prob_start_index]]
@@ -247,7 +262,6 @@ class Maze:
                         s += "-" + " " * 18 + "-"
                     else:
                         num_prob_spaces = 14 #20 spaces - 6 (xx.xx%)
-                        print("PROBABILITY: " + str(self.probability_distribution.matrix[prob_distrib_index][0] * 100))
                         s += "-" + " " * (num_prob_spaces/2-1)
                         s += "%.2f" % (self.probability_distribution.matrix[prob_distrib_index][0] * 100)     
                         s += "%" + " " * (num_prob_spaces/2) + "-"     
@@ -260,16 +274,3 @@ class Maze:
 
 def robotchar(robot_number):
    return chr(ord("A") + robot_number)
-
-
-# Some test code
-
-if __name__ == "__main__":
-#    test_maze1 = Maze("maze1.maz")
-    test_maze2 = Maze("maze2.maz")
-#    print(test_maze1.map)
-#    print(test_maze1.create_render_list())
-#    print(test_maze1)
-    print(test_maze2)
-    print(test_maze2.create_render_list())
-    print(test_maze2.position_dict)
